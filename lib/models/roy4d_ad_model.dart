@@ -1,0 +1,1 @@
+class Roy4dAdModel {}
