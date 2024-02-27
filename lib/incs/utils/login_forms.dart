@@ -67,6 +67,18 @@ class LoginForms {
     );
   }
 
+  void selectDate() {
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1960),
+      lastDate: DateTime.now(),
+    ).then((pickedDate) {
+      if (pickedDate == null) return;
+      dobcontroller.text = pickedDate.toString();
+    });
+  }
+
   TextEditingController fnamecontroller = TextEditingController();
   TextEditingController lnamecontroller = TextEditingController();
   TextEditingController countrycontroller = TextEditingController();
@@ -84,6 +96,7 @@ class LoginForms {
         children: [
           TextFormField(
             controller: fnamecontroller,
+            textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               label: const Text("First name"),
               border: FormMaster.border(),
@@ -91,6 +104,7 @@ class LoginForms {
           ),
           TextFormField(
             controller: lnamecontroller,
+            textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               label: const Text("First name"),
               border: FormMaster.border(),
@@ -123,6 +137,9 @@ class LoginForms {
           ),
           TextFormField(
             controller: dobcontroller,
+            onTap: () {
+              _restorableDatePickerRouteFuture.present();
+            },
             decoration: InputDecoration(
                 border: FormMaster.border(),
                 label: const Text("Date of Birth")),

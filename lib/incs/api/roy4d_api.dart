@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -9,6 +10,11 @@ import 'package:titgram/models/user_model.dart';
 
 class Roy4dApi {
   final BuildContext context;
+  static final StreamController<List<ChannelModel>> _channelStreamCtrl =
+      StreamController<List<ChannelModel>>.broadcast();
+  static Stream<List<ChannelModel>> get channelStreamCtrl =>
+      _channelStreamCtrl.stream;
+
   Roy4dApi(this.context);
 
   Map<String, String> headers() {
@@ -86,7 +92,7 @@ class Roy4dApi {
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      var res = jsonDecode(response.body) as Map<String, dynamic>;
+      var res = jsonDecode(response.body);
     }
   }
 
@@ -103,7 +109,7 @@ class Roy4dApi {
         return FutureBuilder(
           future: getCountries(),
           builder: (context, snapshot) {
-            ValueListenable<Map> cc = ValueNotifier({});
+            ValueListenable<Map<String, CountryModel>> cc = ValueNotifier({});
             return Column(
               children: [
                 Container(
@@ -128,7 +134,13 @@ class Roy4dApi {
                     int iCount = 10;
                     return ListView.builder(
                       itemCount: iCount,
-                      itemBuilder: (context, index) {},
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          leading: Icon(Icons.face_2_sharp),
+                          title: Text(index.toString()),
+                          trailing: Text("KE"),
+                        );
+                      },
                     );
                   },
                 ),

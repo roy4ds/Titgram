@@ -29,6 +29,7 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
+      restorationScopeId: 'app',
       theme: ThemeData(useMaterial3: true),
       themeMode: ThemeMode.system,
       builder: (context, child) {

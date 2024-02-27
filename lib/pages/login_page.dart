@@ -3,7 +3,7 @@ import 'package:titgram/incs/utils/login_forms.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
+  final String? restorationId = 'main';
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
