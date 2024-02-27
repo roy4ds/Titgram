@@ -14,6 +14,7 @@ class Roy4dApi {
       StreamController<List<ChannelModel>>.broadcast();
   static Stream<List<ChannelModel>> get channelStreamCtrl =>
       _channelStreamCtrl.stream;
+  static late String selectedCountry;
 
   Roy4dApi(this.context);
 
@@ -34,7 +35,7 @@ class Roy4dApi {
     if (action.isEmpty) {
       return null;
     }
-    var url = Uri.https('roy4d.com', "/user/$action", {'q': '{http}'});
+    var url = Uri.https('roy4d.com', "/user/$action", user);
     var response = await http.post(url);
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
@@ -63,12 +64,14 @@ class Roy4dApi {
     int offset = channels.length;
     int limit = 15;
     var url = Uri.https('roy4d.com', '/allgram/.bin/getChannels',
-        {'path': 0, 'range': "$offset,$limit"});
+        {"path": "0", "range": "$offset,$limit"});
     var response = await http.post(url, headers: headers());
     if (response.statusCode != 200) {
       return showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      channels.addAll(channelModelFromJson(response.body));
+      var res = channelModelFromJson(response.body);
+      channels.addAll(res);
+      _channelStreamCtrl.sink.add(res);
     }
   }
 
@@ -92,11 +95,20 @@ class Roy4dApi {
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      var res = jsonDecode(response.body);
+      jsonDecode(response.body);
     }
   }
 
-  searchCountryFromMaplist(Map, String) {}
+  void searchCountryFromMaplist(Map<String, CountryModel> c, String s) {
+    String ss = s.toUpperCase();
+    Map<String, CountryModel> filtrate = c;
+    if (ss.length == 2 && c.containsKey(ss)) {
+      filtrate[ss] = c[ss]!;
+    } else {
+      String sss = s.toLowerCase();
+    }
+    c = filtrate;
+  }
 
   showCountryBottomSheetSelector() {
     return showModalBottomSheet(
@@ -106,7 +118,7 @@ class Roy4dApi {
       enableDrag: true,
       showDragHandle: true,
       builder: (context) {
-        return FutureBuilder(
+        return FutureBuilder<Map<String, CountryModel>?>(
           future: getCountries(),
           builder: (context, snapshot) {
             ValueListenable<Map<String, CountryModel>> cc = ValueNotifier({});
@@ -116,10 +128,10 @@ class Roy4dApi {
                   alignment: Alignment.center,
                   child: TextFormField(
                     onChanged: (value) {
-                      searchCountryFromMaplist(cc, value);
+                      searchCountryFromMaplist(cc.value, value);
                     },
                     onFieldSubmitted: (value) {
-                      searchCountryFromMaplist(cc, value);
+                      searchCountryFromMaplist(cc.value, value);
                     },
                     textInputAction: TextInputAction.search,
                     decoration: const InputDecoration(
@@ -130,15 +142,21 @@ class Roy4dApi {
                 ),
                 ValueListenableBuilder(
                   valueListenable: cc,
-                  builder: (context, value, child) {
-                    int iCount = 10;
+                  builder: (context, countries, child) {
+                    Iterable cKeys = countries.keys;
+                    int iCount = cKeys.length;
                     return ListView.builder(
                       itemCount: iCount,
                       itemBuilder: (context, index) {
+                        CountryModel? country =
+                            countries[cKeys.elementAt(index)];
+                        if (country == null) return Container();
                         return ListTile(
-                          leading: Icon(Icons.face_2_sharp),
-                          title: Text(index.toString()),
-                          trailing: Text("KE"),
+                          onTap: () {
+                            Roy4dApi.selectedCountry = country.shortcode;
+                          },
+                          title: Text(country.name),
+                          trailing: Text(country.phonecode.toString()),
                         );
                       },
                     );

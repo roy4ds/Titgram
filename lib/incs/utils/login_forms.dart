@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:titgram/incs/api/roy4d_api.dart';
 import 'package:titgram/incs/utils/form_master.dart';
+import 'package:titgram/pages/login_manager.dart';
 
 class LoginForms {
   final BuildContext context;
@@ -53,7 +54,9 @@ class LoginForms {
                   if (loginFormKey.currentState!.validate()) {
                     Map<String, String> user = {};
                     user['action'] = 'login';
-                    Roy4dApi(context).auth(user);
+                    Roy4dApi(context).auth(user).then((value) {
+                      if (value != null) LoginManager().saveLoginSession(value);
+                    });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Logging in...')),
                     );
@@ -120,7 +123,12 @@ class LoginForms {
             children: [
               TextFormField(
                 controller: dialcodecontroller,
-                decoration: const InputDecoration(hintText: "+1"),
+                onTap: Roy4dApi(context).showCountryBottomSheetSelector(),
+                decoration: InputDecoration(
+                    hintText: "+1", suffixText: countrycontroller.text),
+                onChanged: (value) {
+                  countrycontroller.text = Roy4dApi.selectedCountry;
+                },
                 readOnly: true,
               ),
               const SizedBox(
@@ -138,7 +146,7 @@ class LoginForms {
           TextFormField(
             controller: dobcontroller,
             onTap: () {
-              _restorableDatePickerRouteFuture.present();
+              selectDate();
             },
             decoration: InputDecoration(
                 border: FormMaster.border(),
@@ -191,7 +199,9 @@ class LoginForms {
                   user['pwd'] = 'registerUser';
                   user['cpwd'] = 'registerUser';
                   user['action'] = 'registerUser';
-                  Roy4dApi(context).auth(user);
+                  Roy4dApi(context).auth(user).then((value) {
+                    if (value != null) LoginManager().saveLoginSession(value);
+                  });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Logging in...')),
                   );

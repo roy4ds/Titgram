@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:titgram/ads/admob/admanager.dart';
 import 'package:titgram/incs/api/roy4d_api.dart';
@@ -13,6 +15,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late AdManager adManager;
+  late Roy4dApi roy4dApi;
   ValueNotifier<bool> isOnSearch = ValueNotifier(false);
   ValueNotifier<List<ChannelModel>?> channelMatch = ValueNotifier([]);
   ScrollController mainListScrollController = ScrollController();
@@ -21,6 +24,17 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     adManager = AdManager(context);
     super.initState();
+    roy4dApi = Roy4dApi(context);
+    roy4dApi.getChannels();
+
+    mainListScrollController.addListener(() {
+      double maxScroll = mainListScrollController.position.maxScrollExtent;
+      double currentScroll = mainListScrollController.position.pixels;
+      double delta = 200.0; // or something else..
+      if (maxScroll - currentScroll <= delta) {
+        roy4dApi.getChannels();
+      }
+    });
   }
 
   List<Widget> drawables() {
@@ -59,7 +73,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               } else {
-                return const Text("Titgram");
+                return const Text(
+                  "Titgram",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
+                );
               }
             }),
         actions: [
@@ -79,27 +96,39 @@ class _HomePageState extends State<HomePage> {
       body: StreamBuilder<List<ChannelModel>>(
         stream: Roy4dApi.channelStreamCtrl,
         builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
           channelMatch.value = snapshot.data;
           return ValueListenableBuilder(
             valueListenable: channelMatch,
             builder: (context, value, child) {
-              // add ads to the list
-              // then render
+              if (value == null || value.isEmpty) {
+                return const Center(
+                  child: Text('No chats found'),
+                );
+              }
               List smartList = [];
               smartList.addAll(value as Iterable);
-              int numberOfChats = value!.length;
-              for (var i = 0; i < numberOfChats; i += 5) {
-                smartList.insert(i, adManager.insertBanner());
+              int numberOfChats = value.length;
+              if (numberOfChats > 5) {
+                for (var i = 0; i < numberOfChats; i += 5) {
+                  smartList.insert(i, adManager.insertBanner());
+                }
               }
-
               return ListView.builder(
                 controller: mainListScrollController,
                 padding: const EdgeInsets.all(8.0),
+                itemCount: smartList.length,
                 itemBuilder: (context, index) {
-                  var channel = smartList![index];
+                  var channel = smartList[index];
                   if (channel is Widget) {
                     return channel;
                   }
+                  channel = channel as ChannelModel;
+                  String photo = channel.photo!.smallFileId;
                   return ListTile(
                     leading: SizedBox(
                       height: 50,
@@ -107,14 +136,16 @@ class _HomePageState extends State<HomePage> {
                       child: ClipRect(
                         child: FadeInImage.memoryNetwork(
                           placeholder: kTransparentImage,
-                          image: "https://roy4d.com/graddle/icons/ios/64.png",
+                          image:
+                              "https://roy4d.com/graddle/.bin/ffx/101/$photo.jpg",
                           imageErrorBuilder: (context, error, stackTrace) {
                             return Container();
                           },
                         ),
                       ),
                     ),
-                    title: Text(),
+                    title: Text(jsonEncode(channel.title)),
+                    subtitle: Text("${channel.subscribers}subscribers"),
                   );
                 },
               );
@@ -122,6 +153,7 @@ class _HomePageState extends State<HomePage> {
           );
         },
       ),
+      // bottomNavigationBar: BottomNavigationBar(items: items),
     );
   }
 }

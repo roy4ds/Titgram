@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:titgram/pages/home_page.dart';
+import 'package:titgram/pages/login_manager.dart';
 import 'package:titgram/pages/web_page.dart';
 
 class RoutesManager {
   /// The route configuration.
+  static final LoginManager loginManager = LoginManager();
   final GoRouter router = GoRouter(
     initialLocation: "/",
     routes: <RouteBase>[
@@ -99,6 +102,9 @@ class RoutesManager {
       );
     },
     redirect: (BuildContext context, GoRouterState state) {
+      bool isComingToLogin =
+          state.path != null && state.path!.contains('login');
+      if (!loginManager.isLoggedIn() && !isComingToLogin) return '/login';
       return null;
     },
     // refreshListenable:

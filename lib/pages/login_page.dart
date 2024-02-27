@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:titgram/incs/utils/login_forms.dart';
 
 class LoginPage extends StatefulWidget {
@@ -11,6 +12,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool isSigningUp = false;
   late LoginForms loginForms;
+  final box = Hive.box('app');
 
   @override
   void initState() {
@@ -22,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     String titleText = isSigningUp ? "Signup" : "Login";
     String actionText = isSigningUp ? "Login" : "Signup";
+    bool isdark = box.get('isdark', defaultValue: false);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,9 +52,12 @@ class _LoginPageState extends State<LoginPage> {
             child: isSigningUp ? loginForms.signup() : loginForms.login()),
       ),
       floatingActionButton: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          box.put('isdark', !isdark);
+        },
         style: ElevatedButton.styleFrom(shape: const CircleBorder()),
-        child: const Icon(Icons.light_mode),
+        child:
+            Icon(isdark != true ? Icons.light_mode : Icons.dark_mode_rounded),
       ),
     );
   }
