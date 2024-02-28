@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:titgram/pages/home_page.dart';
 import 'package:titgram/pages/login_manager.dart';
+import 'package:titgram/pages/login_page.dart';
 import 'package:titgram/pages/web_page.dart';
 
 class RoutesManager {
@@ -12,15 +12,15 @@ class RoutesManager {
     initialLocation: "/",
     routes: <RouteBase>[
       GoRoute(
-        path: '/',
         name: 'home',
+        path: '/',
         builder: (BuildContext context, GoRouterState state) {
           return const HomePage();
         },
       ),
       GoRoute(
-        path: '/channel',
         name: 'channel',
+        path: '/channel',
         builder: (BuildContext context, GoRouterState state) {
           return const HomePage();
         },
@@ -34,8 +34,8 @@ class RoutesManager {
         ],
       ),
       GoRoute(
-        path: '/group',
         name: 'group',
+        path: '/group',
         builder: (BuildContext context, GoRouterState state) {
           return const HomePage();
         },
@@ -49,8 +49,8 @@ class RoutesManager {
         ],
       ),
       GoRoute(
-        path: '/bot',
         name: 'bot',
+        path: '/bot',
         builder: (BuildContext context, GoRouterState state) {
           return const HomePage();
         },
@@ -64,22 +64,24 @@ class RoutesManager {
         ],
       ),
       GoRoute(
-        path: '/login',
         name: 'login',
+        path: '/login',
         builder: (BuildContext context, GoRouterState state) {
-          return const HomePage();
+          return const LoginPage();
         },
       ),
       GoRoute(
-        path: '/web',
         name: 'web',
+        path: '/web:res',
         builder: (BuildContext context, GoRouterState state) {
-          return const WebPage();
+          return WebPage(
+            config: state.pathParameters,
+          );
         },
       ),
       GoRoute(
-        path: '/menu',
         name: 'menu',
+        path: '/menu',
         builder: (BuildContext context, GoRouterState state) {
           return const HomePage();
         },
@@ -104,7 +106,9 @@ class RoutesManager {
     redirect: (BuildContext context, GoRouterState state) {
       bool isComingToLogin =
           state.path != null && state.path!.contains('login');
-      if (!loginManager.isLoggedIn() && !isComingToLogin) return '/login';
+      if (!loginManager.isLoggedIn() && !isComingToLogin) {
+        return '/login';
+      }
       return null;
     },
     // refreshListenable:

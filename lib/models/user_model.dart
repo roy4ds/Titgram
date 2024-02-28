@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 User userFromJson(String str) => User.fromJson(json.decode(str));
+String userToJson(User data) => json.encode(data.toJson());
 
 class User {
   int id;
@@ -14,8 +15,8 @@ class User {
   String mobile;
   String email;
   String country;
-  String curr;
-  String apps;
+  String? curr;
+  String? apps;
   int uchat;
   String fullName;
   bool? upgrade;
@@ -55,6 +56,23 @@ class User {
         eps: json["eps"] == null ? null : Eps.fromJson(json["eps"]),
         uat: json["uat"],
       );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "fname": fname,
+        "lname": lname,
+        "uname": uname,
+        "mobile": mobile,
+        "email": email,
+        "country": country,
+        "curr": curr,
+        "apps": apps,
+        "uchat": uchat,
+        "FullName": fullName,
+        "upgrade": upgrade,
+        "eps": eps?.toJson(),
+        "uat": uat,
+      };
 }
 
 class Eps {
@@ -88,4 +106,15 @@ class Eps {
         lastseen: DateTime.parse(json["lastseen"]),
         status: json["status"],
       );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "uid": uid,
+        "org": org,
+        "role": role,
+        "salary": salary,
+        "csd": csd.toIso8601String(),
+        "lastseen": lastseen.toIso8601String(),
+        "status": status,
+      };
 }

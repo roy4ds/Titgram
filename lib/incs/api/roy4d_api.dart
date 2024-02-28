@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:titgram/models/channel_model.dart';
@@ -35,12 +34,20 @@ class Roy4dApi {
     if (action.isEmpty) {
       return null;
     }
-    var url = Uri.https('roy4d.com', "/user/$action", user);
-    var response = await http.post(url);
+    var url = Uri.https('roy4d.com', "/user/$action");
+    var response =
+        await http.post(url, body: {"user": jsonEncode(user['user'])});
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      return userFromJson(response.body);
+      var r = response.body;
+      var res = jsonDecode(r);
+      if (res['error'] != null) {
+        showSnack(res['description']);
+        return null;
+      } else {
+        return userFromJson(r);
+      }
     }
     return null;
   }
@@ -53,7 +60,7 @@ class Roy4dApi {
       if (response.statusCode != 200) {
         showSnack('Request failed with status: ${response.statusCode}.');
       } else {
-        countries = countryModelFromJson(response.body);
+        countries.addAll(countryModelFromJson(response.body));
       }
     }
     return countries;
@@ -110,7 +117,8 @@ class Roy4dApi {
     c = filtrate;
   }
 
-  showCountryBottomSheetSelector() {
+  showCountryBottomSheetSelector(TextEditingController dc) {
+    ValueNotifier<Map<String, CountryModel>> cc = ValueNotifier({});
     return showModalBottomSheet(
       context: context,
       useSafeArea: true,
@@ -121,7 +129,17 @@ class Roy4dApi {
         return FutureBuilder<Map<String, CountryModel>?>(
           future: getCountries(),
           builder: (context, snapshot) {
-            ValueListenable<Map<String, CountryModel>> cc = ValueNotifier({});
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (!snapshot.hasData) {
+              return const Center(
+                child: Text("No data found"),
+              );
+            }
+            cc.value = snapshot.data!;
             return Column(
               children: [
                 Container(
@@ -140,27 +158,31 @@ class Roy4dApi {
                     ),
                   ),
                 ),
-                ValueListenableBuilder(
-                  valueListenable: cc,
-                  builder: (context, countries, child) {
-                    Iterable cKeys = countries.keys;
-                    int iCount = cKeys.length;
-                    return ListView.builder(
-                      itemCount: iCount,
-                      itemBuilder: (context, index) {
-                        CountryModel? country =
-                            countries[cKeys.elementAt(index)];
-                        if (country == null) return Container();
-                        return ListTile(
-                          onTap: () {
-                            Roy4dApi.selectedCountry = country.shortcode;
-                          },
-                          title: Text(country.name),
-                          trailing: Text(country.phonecode.toString()),
-                        );
-                      },
-                    );
-                  },
+                Expanded(
+                  child: ValueListenableBuilder(
+                    valueListenable: cc,
+                    builder: (context, countries, child) {
+                      Iterable cKeys = countries.keys;
+                      int iCount = cKeys.length;
+                      return ListView.builder(
+                        itemCount: iCount,
+                        itemBuilder: (context, index) {
+                          CountryModel? country =
+                              countries[cKeys.elementAt(index)];
+                          if (country == null) return Container();
+                          return ListTile(
+                            onTap: () {
+                              Roy4dApi.selectedCountry = country.shortcode;
+                              dc.text = "+${country.phonecode.toString()}";
+                              Navigator.pop(context);
+                            },
+                            title: Text(country.name),
+                            trailing: Text(country.phonecode.toString()),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ],
             );

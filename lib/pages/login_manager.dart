@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:titgram/models/user_model.dart';
 
@@ -16,14 +17,14 @@ class LoginManager with ChangeNotifier {
     return false;
   }
 
-  void saveLoginSession(User user) {
-    box.put(session, jsonEncode(user));
+  void saveLoginSession(BuildContext context, User user) {
+    box.put(session, userToJson(user));
+    context.goNamed('home');
   }
 
-  _Auth() {}
-
-  void logout() {
+  void logout(BuildContext context) {
     box.delete(session);
+    context.goNamed('login');
     notifyListeners();
   }
 }

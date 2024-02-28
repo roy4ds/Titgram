@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:titgram/ads/admob/app_open_ad_manager.dart';
 import 'package:titgram/incs/reactors/app_lifecycle_reactor.dart';
 import 'package:titgram/routes/routes_manager.dart';
@@ -21,10 +22,21 @@ class MainApp extends StatefulWidget {
   State<MainApp> createState() => _MainAppState();
 }
 
+void getRequiredPermissions() async {
+  Map<Permission, PermissionStatus> perms = await [
+    Permission.sms,
+    Permission.camera,
+    Permission.location,
+    Permission.storage,
+  ].request();
+  perms.clear();
+}
+
 class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
+    getRequiredPermissions();
     AppOpenAdManager appOpenAdManager = AppOpenAdManager()..loadAd();
     AppLifecycleReactor(appOpenAdManager: appOpenAdManager);
   }
@@ -38,7 +50,11 @@ class _MainAppState extends State<MainApp> {
         return MaterialApp.router(
           debugShowCheckedModeBanner: false,
           restorationScopeId: 'app',
-          theme: ThemeData(useMaterial3: true),
+          theme: ThemeData(
+              useMaterial3: true,
+              brightness: isDark == null || !isDark
+                  ? Brightness.dark
+                  : Brightness.light),
           themeMode: isDark == null
               ? ThemeMode.system
               : isDark

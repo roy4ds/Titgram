@@ -26,7 +26,7 @@ class LoginForms {
                 }
               },
               decoration: InputDecoration(
-                label: const Text("Username | Email | Mobile"),
+                label: const Text("Username, Email or Mobile"),
                 border: FormMaster.border(),
               ),
             ),
@@ -52,10 +52,16 @@ class LoginForms {
                 child: const Text('Login'),
                 onPressed: () {
                   if (loginFormKey.currentState!.validate()) {
-                    Map<String, String> user = {};
+                    Map<String, dynamic> user = {};
                     user['action'] = 'login';
+                    user['user'] = {
+                      "user": unamecontroller.text,
+                      "passwd": passwdcontroller.text
+                    };
                     Roy4dApi(context).auth(user).then((value) {
-                      if (value != null) LoginManager().saveLoginSession(value);
+                      if (value != null) {
+                        LoginManager().saveLoginSession(context, value);
+                      }
                     });
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Logging in...')),
@@ -78,7 +84,7 @@ class LoginForms {
       lastDate: DateTime.now(),
     ).then((pickedDate) {
       if (pickedDate == null) return;
-      dobcontroller.text = pickedDate.toString();
+      dobcontroller.text = pickedDate.toString().substring(0, 10);
     });
   }
 
@@ -105,6 +111,9 @@ class LoginForms {
               border: FormMaster.border(),
             ),
           ),
+          const SizedBox(
+            height: 20,
+          ),
           TextFormField(
             controller: lnamecontroller,
             textCapitalization: TextCapitalization.sentences,
@@ -116,27 +125,35 @@ class LoginForms {
           const SizedBox(
             height: 20,
           ),
-          const SizedBox(
-            height: 40,
-          ),
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextFormField(
-                controller: dialcodecontroller,
-                onTap: Roy4dApi(context).showCountryBottomSheetSelector(),
-                decoration: InputDecoration(
-                    hintText: "+1", suffixText: countrycontroller.text),
-                onChanged: (value) {
-                  countrycontroller.text = Roy4dApi.selectedCountry;
-                },
-                readOnly: true,
+              SizedBox(
+                width: 60,
+                child: TextFormField(
+                  controller: dialcodecontroller,
+                  onTap: () {
+                    Roy4dApi(context)
+                        .showCountryBottomSheetSelector(dialcodecontroller);
+                  },
+                  decoration: InputDecoration(
+                      hintText: "+1", suffixText: countrycontroller.text),
+                  onChanged: (value) {
+                    countrycontroller.text = Roy4dApi.selectedCountry;
+                    print(countrycontroller.text);
+                  },
+                  textAlign: TextAlign.center,
+                  readOnly: true,
+                ),
               ),
               const SizedBox(
-                width: 8,
+                width: 10,
               ),
-              TextFormField(
-                controller: mobilecontroller,
-                keyboardType: TextInputType.phone,
+              Expanded(
+                child: TextFormField(
+                  controller: mobilecontroller,
+                  keyboardType: TextInputType.phone,
+                ),
               ),
             ],
           ),
@@ -149,8 +166,11 @@ class LoginForms {
               selectDate();
             },
             decoration: InputDecoration(
-                border: FormMaster.border(),
-                label: const Text("Date of Birth")),
+              border: FormMaster.border(),
+              label: const Text("Date of Birth"),
+            ),
+            readOnly: true,
+            enableSuggestions: false,
           ),
           const SizedBox(
             height: 20,
@@ -189,18 +209,22 @@ class LoginForms {
             child: ElevatedButton(
               onPressed: () {
                 if (signupFormKey.currentState!.validate()) {
-                  Map<String, String> user = {};
-                  user['fname'] = fnamecontroller.text;
-                  user['lname'] = lnamecontroller.text;
-                  user['country'] = countrycontroller.text;
-                  user['mobile'] = mobilecontroller.text;
-                  user['dob'] = 'registerUser';
-                  user['email'] = 'registerUser';
-                  user['pwd'] = 'registerUser';
-                  user['cpwd'] = 'registerUser';
+                  Map<String, dynamic> user = {};
                   user['action'] = 'registerUser';
+                  user['user'] = {
+                    "fname": fnamecontroller.text,
+                    "lname": lnamecontroller.text,
+                    "country": countrycontroller.text,
+                    "mobile": mobilecontroller.text,
+                    "dob": dobcontroller.text,
+                    "email": emailcontroller.text,
+                    "pwd": pwdcontroller.text,
+                    "cpwd": cpwdcontroller.text
+                  };
                   Roy4dApi(context).auth(user).then((value) {
-                    if (value != null) LoginManager().saveLoginSession(value);
+                    if (value != null) {
+                      LoginManager().saveLoginSession(context, value);
+                    }
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Logging in...')),

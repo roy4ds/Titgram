@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:titgram/ads/admob/admanager.dart';
 import 'package:titgram/incs/api/roy4d_api.dart';
 import 'package:titgram/models/channel_model.dart';
+import 'package:titgram/pages/login_manager.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,6 +13,12 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
+}
+
+extension StringExtension on String {
+  String capitalize() {
+    return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+  }
 }
 
 class _HomePageState extends State<HomePage> {
@@ -38,13 +46,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<Widget> drawables() {
-    List x = [];
+    List<String> x = [
+      'shops',
+      'maps',
+      'business',
+      'stories',
+      'markets',
+      'affiliates'
+    ];
     List<Widget> y = [];
     for (var d in x) {
       y.add(
         ListTile(
           onTap: () {
-            Navigator.of(context).pushNamed(d);
+            context.goNamed('web', pathParameters: {"res": d});
           },
           title: Text(d.capitalize()),
         ),
@@ -57,14 +72,17 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: ValueListenableBuilder(
             valueListenable: isOnSearch,
             builder: (context, value, child) {
               if (value) {
                 return Container(
-                  padding: const EdgeInsets.fromLTRB(12, 20, 8, 2),
-                  decoration:
-                      BoxDecoration(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 8, 2),
+                  decoration: BoxDecoration(
+                    border: Border.all(),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                   child: TextFormField(
                     decoration: const InputDecoration(
                       hintText: "Search...",
@@ -90,7 +108,40 @@ class _HomePageState extends State<HomePage> {
       ),
       drawer: Drawer(
         child: Column(
-          children: [...drawables()],
+          children: [
+            DrawerHeader(
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                alignment: Alignment.center,
+                child: const Icon(Icons.headphones),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                children: [
+                  ...drawables(),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(18.0),
+              child: Row(
+                children: [
+                  const Text(
+                    "Log Out",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () {
+                      LoginManager().logout(context);
+                    },
+                    icon: const Icon(Icons.logout),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
       body: StreamBuilder<List<ChannelModel>>(
@@ -101,7 +152,16 @@ class _HomePageState extends State<HomePage> {
               child: CircularProgressIndicator(),
             );
           }
-          channelMatch.value = snapshot.data;
+          if (channelMatch.value == null) {
+            return const Center(
+              child: Text("No chats found"),
+            );
+          }
+          List<ChannelModel> superList = [
+            ...channelMatch.value!,
+            ...snapshot.data!
+          ];
+          channelMatch.value = superList;
           return ValueListenableBuilder(
             valueListenable: channelMatch,
             builder: (context, value, child) {
@@ -128,12 +188,13 @@ class _HomePageState extends State<HomePage> {
                     return channel;
                   }
                   channel = channel as ChannelModel;
-                  String photo = channel.photo!.smallFileId;
+                  String? photo = channel.photo?.smallFileId;
                   return ListTile(
                     leading: SizedBox(
                       height: 50,
                       width: 50,
-                      child: ClipRect(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(24),
                         child: FadeInImage.memoryNetwork(
                           placeholder: kTransparentImage,
                           image:
@@ -144,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     ),
-                    title: Text(jsonEncode(channel.title)),
+                    title: Text(json.decode(channel.title)),
                     subtitle: Text("${channel.subscribers}subscribers"),
                   );
                 },
