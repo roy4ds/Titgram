@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:titgram/ads/admob/app_open_ad_manager.dart';
 import 'package:titgram/incs/reactors/app_lifecycle_reactor.dart';
 import 'package:titgram/routes/routes_manager.dart';
+import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,6 +13,7 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox('app');
   await Hive.openBox('user');
+  setPathUrlStrategy();
   runApp(const MainApp());
 }
 
@@ -22,7 +24,7 @@ class MainApp extends StatefulWidget {
   State<MainApp> createState() => _MainAppState();
 }
 
-void getRequiredPermissions() async {
+void initPermissionRequests() async {
   Map<Permission, PermissionStatus> perms = await [
     Permission.sms,
     Permission.camera,
@@ -36,7 +38,7 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
-    getRequiredPermissions();
+    initPermissionRequests();
     AppOpenAdManager appOpenAdManager = AppOpenAdManager()..loadAd();
     AppLifecycleReactor(appOpenAdManager: appOpenAdManager);
   }

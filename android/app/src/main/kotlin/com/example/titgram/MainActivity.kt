@@ -1,4 +1,4 @@
-package com.example.titgram
+package com.roy4ds.titgram
 
 import io.flutter.embedding.android.FlutterActivity
 

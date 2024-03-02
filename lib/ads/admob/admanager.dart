@@ -74,10 +74,14 @@ class AdManager {
             onAdShowedFullScreenContent: (ad) {},
             onAdImpression: (ad) {},
             onAdFailedToShowFullScreenContent: (ad, err) {
+              _interstitialAd = null;
               ad.dispose();
+              loadInter();
             },
             onAdDismissedFullScreenContent: (ad) {
+              _interstitialAd = null;
               ad.dispose();
+              loadInter();
             },
             onAdClicked: (ad) {},
           );

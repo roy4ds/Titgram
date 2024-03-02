@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:titgram/ads/admob/adunits.dart';
 
@@ -22,7 +23,7 @@ class AppOpenAdManager {
           _appOpenAd = ad;
         },
         onAdFailedToLoad: (error) {
-          print('AppOpenAd failed to load: $error');
+          debugPrint('AppOpenAd failed to load: $error');
         },
       ),
     );

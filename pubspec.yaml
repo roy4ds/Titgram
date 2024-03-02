@@ -17,6 +17,7 @@ dependencies:
   http: ^1.2.1
   permission_handler: ^11.3.0
   transparent_image: ^2.0.1
+  url_strategy: ^0.2.0
   webview_flutter: ^4.7.0
   webview_flutter_android: ^3.15.0
 

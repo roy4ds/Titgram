@@ -118,27 +118,41 @@ class _WebPageState extends State<WebPage> {
     return files;
   }
 
+  Future<void> popMan() async {
+    final NavigatorState navigator = Navigator.of(context);
+    if (await _controller.canGoBack()) {
+      _controller.goBack();
+    } else {
+      navigator.pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        await popMan();
+      },
       child: SafeArea(
         child: Scaffold(
-            body: Stack(
-          children: [
-            WebViewWidget(
-              controller: _controller,
-            ),
-            if (loadingPercentage < 100)
-              LinearProgressIndicator(
-                value: loadingPercentage / 100.0,
+          body: Stack(
+            children: [
+              WebViewWidget(
+                controller: _controller,
               ),
-          ],
-        )),
+              if (loadingPercentage < 100)
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: LinearProgressIndicator(
+                    value: loadingPercentage / 100.0,
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
-      onPopInvoked: (didPop) {
-        //
-      },
     );
   }
 }

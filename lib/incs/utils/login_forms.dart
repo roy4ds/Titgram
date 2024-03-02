@@ -24,6 +24,7 @@ class LoginForms {
                 if (value == null) {
                   return "Required";
                 }
+                return null;
               },
               decoration: InputDecoration(
                 label: const Text("Username, Email or Mobile"),
@@ -140,7 +141,6 @@ class LoginForms {
                       hintText: "+1", suffixText: countrycontroller.text),
                   onChanged: (value) {
                     countrycontroller.text = Roy4dApi.selectedCountry;
-                    print(countrycontroller.text);
                   },
                   textAlign: TextAlign.center,
                   readOnly: true,
