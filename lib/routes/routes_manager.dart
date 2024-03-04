@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:titgram/pages/channel_view.dart';
 import 'package:titgram/pages/home_page.dart';
 import 'package:titgram/pages/login_manager.dart';
 import 'package:titgram/pages/login_page.dart';
@@ -19,10 +20,10 @@ class RoutesManager {
         },
       ),
       GoRoute(
-        name: 'channel',
-        path: '/channel',
+        name: 'view',
+        path: '/view:channel',
         builder: (BuildContext context, GoRouterState state) {
-          return const HomePage();
+          return ChannelView(selectedChannel: state.pathParameters['channel']!);
         },
         routes: <RouteBase>[
           GoRoute(
@@ -34,8 +35,8 @@ class RoutesManager {
         ],
       ),
       GoRoute(
-        name: 'group',
-        path: '/group',
+        name: 'discover',
+        path: '/discover',
         builder: (BuildContext context, GoRouterState state) {
           return const HomePage();
         },

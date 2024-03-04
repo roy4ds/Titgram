@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  List<Widget> drawables() {
+  List<Widget> drawables(BuildContext context) {
     List<String> x = [
       'shops',
       'maps',
@@ -59,6 +59,7 @@ class _HomePageState extends State<HomePage> {
       y.add(
         ListTile(
           onTap: () {
+            Navigator.pop(context);
             context.goNamed('web', pathParameters: {"res": d});
           },
           title: Text(d.capitalize()),
@@ -119,7 +120,7 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: Column(
                 children: [
-                  ...drawables(),
+                  ...drawables(context),
                 ],
               ),
             ),
@@ -190,6 +191,10 @@ class _HomePageState extends State<HomePage> {
                   channel = channel as ChannelModel;
                   String? photo = channel.photo?.smallFileId;
                   return ListTile(
+                    onTap: () {
+                      context.goNamed('view',
+                          pathParameters: {"channel": jsonEncode(channel)});
+                    },
                     leading: SizedBox(
                       height: 50,
                       width: 50,

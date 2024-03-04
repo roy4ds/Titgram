@@ -6,17 +6,18 @@ import 'package:titgram/ads/admob/admanager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
+late Map<String, dynamic> configs;
+
 class WebPage extends StatefulWidget {
-  final Map<String, dynamic> config;
-  const WebPage({super.key, required this.config});
+  WebPage({super.key, required Map<String, dynamic> config}) {
+    configs = config;
+  }
 
   @override
-  State<WebPage> createState() => _WebPageState(config);
+  State<WebPage> createState() => _WebPageState();
 }
 
 class _WebPageState extends State<WebPage> {
-  final Map<String, dynamic> config;
-  _WebPageState(this.config);
   var loadingPercentage = 0;
 
   late AdManager adManager;
@@ -26,7 +27,7 @@ class _WebPageState extends State<WebPage> {
   @override
   void initState() {
     super.initState();
-    String res = config['res'] ?? "";
+    String res = configs['res'] ?? "";
     String url = "https://roy4d.com/$res";
     adManager = AdManager(context);
 
@@ -70,12 +71,6 @@ class _WebPageState extends State<WebPage> {
             adManager.showInter();
             return NavigationDecision.navigate;
           },
-          onUrlChange: (UrlChange change) {
-            debugPrint('url change to ${change.url}');
-          },
-          onHttpAuthRequest: (HttpAuthRequest request) {
-            //
-          },
         ),
       )
       ..addJavaScriptChannel(
@@ -118,36 +113,31 @@ class _WebPageState extends State<WebPage> {
     return files;
   }
 
-  Future<void> popMan() async {
-    final NavigatorState navigator = Navigator.of(context);
-    if (await _controller.canGoBack()) {
-      _controller.goBack();
-    } else {
-      navigator.pop();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) async {
-        if (didPop) return;
-        await popMan();
+        debugPrint(didPop.toString());
+        if (!didPop) return;
+        if (await _controller.canGoBack()) {
+          _controller.goBack();
+        } else {
+          // Navigator.pop(context);
+        }
       },
-      child: SafeArea(
-        child: Scaffold(
-          body: Stack(
+      child: Scaffold(
+        body: SafeArea(
+          child: Column(
             children: [
-              WebViewWidget(
-                controller: _controller,
+              Expanded(
+                child: WebViewWidget(
+                  controller: _controller,
+                ),
               ),
               if (loadingPercentage < 100)
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: LinearProgressIndicator(
-                    value: loadingPercentage / 100.0,
-                  ),
+                LinearProgressIndicator(
+                  value: loadingPercentage / 100.0,
                 ),
             ],
           ),

@@ -39,6 +39,9 @@ class LoginForms {
               obscureText: true,
               enableSuggestions: false,
               validator: (value) {
+                if (value == null) {
+                  return "Required";
+                }
                 return null;
               },
               decoration: InputDecoration(
