@@ -7,6 +7,9 @@ import 'dart:convert';
 List<ChannelModel> channelModelFromJson(String str) => List<ChannelModel>.from(
     json.decode(str).map((x) => ChannelModel.fromJson(x)));
 
+String channelModelToJson(List<ChannelModel> data) =>
+    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+
 class ChannelModel {
   String id;
   String title;
@@ -35,6 +38,16 @@ class ChannelModel {
         link: json["link"],
         photo: json["photo"] == null ? null : Photo.fromJson(json["photo"]),
       );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "title": title,
+        "uname": uname,
+        "owner": owner,
+        "subscribers": subscribers,
+        "link": link,
+        "photo": photo?.toJson(),
+      };
 }
 
 class Photo {
@@ -56,4 +69,11 @@ class Photo {
         bigFileId: json["big_file_id"],
         bigFileUniqueId: json["big_file_unique_id"],
       );
+
+  Map<String, dynamic> toJson() => {
+        "small_file_id": smallFileId,
+        "small_file_unique_id": smallFileUniqueId,
+        "big_file_id": bigFileId,
+        "big_file_unique_id": bigFileUniqueId,
+      };
 }

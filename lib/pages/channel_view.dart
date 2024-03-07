@@ -7,8 +7,8 @@ import 'package:titgram/models/channel_model.dart';
 late ChannelModel channel;
 
 class ChannelView extends StatefulWidget {
-  ChannelView({super.key, required String selectedChannel}) {
-    channel = ChannelModel.fromJson(jsonDecode(selectedChannel));
+  ChannelView({super.key, required ChannelModel selectedChannel}) {
+    channel = selectedChannel;
   }
 
   @override
@@ -28,7 +28,7 @@ class _ChannelViewState extends State<ChannelView> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(channel.title),
+        title: Text(jsonDecode(channel.title)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

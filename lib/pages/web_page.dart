@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:titgram/ads/admob/admanager.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -19,10 +20,26 @@ class WebPage extends StatefulWidget {
 
 class _WebPageState extends State<WebPage> {
   var loadingPercentage = 0;
+  double interBit = 0;
 
   late AdManager adManager;
   late final WebViewController _controller;
   late final PlatformWebViewControllerCreationParams params;
+
+  PackageInfo _packageInfo = PackageInfo(
+    appName: 'Unknown',
+    packageName: 'Unknown',
+    version: 'Unknown',
+    buildNumber: 'Unknown',
+    buildSignature: 'Unknown',
+    installerStore: 'Unknown',
+  );
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    _packageInfo = info;
+    _controller.setUserAgent(_packageInfo.packageName);
+  }
 
   @override
   void initState() {
@@ -30,6 +47,7 @@ class _WebPageState extends State<WebPage> {
     String res = configs['res'] ?? "";
     String url = "https://roy4d.com/$res";
     adManager = AdManager(context);
+    _initPackageInfo();
 
     params = const PlatformWebViewControllerCreationParams();
     final WebViewController controller =
@@ -68,26 +86,37 @@ class _WebPageState extends State<WebPage> {
             if (request.url.startsWith('https://www.youtube.com/')) {
               return NavigationDecision.prevent;
             }
-            adManager.showInter();
+            interBit++;
+            if (interBit % 3 > 0) adManager.showInter();
             return NavigationDecision.navigate;
           },
         ),
       )
-      ..addJavaScriptChannel(
-        'Toaster',
-        onMessageReceived: (JavaScriptMessage message) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(message.message)),
-          );
-        },
-      )
+      ..addJavaScriptChannel('Toaster',
+          onMessageReceived: (JavaScriptMessage message) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message.message)),
+        );
+      })
       ..loadRequest(Uri.parse(url));
 
     if (Platform.isAndroid) {
       final myAndroidController =
           controller.platform as AndroidWebViewController;
-      myAndroidController.setMediaPlaybackRequiresUserGesture(false);
+      myAndroidController
+        ..setMediaPlaybackRequiresUserGesture(false)
+        ..setGeolocationPermissionsPromptCallbacks(
+          onShowPrompt: (request) async {
+            request.origin;
+            return const GeolocationPermissionsResponse(
+                allow: true, retain: true);
+          },
+          onHidePrompt: () {
+            // hide related ui
+          },
+        );
       myAndroidController.setOnShowFileSelector((params) async {
+        debugPrint(params.toString());
         FilePickerResult? result = await FilePicker.platform.pickFiles();
         String file;
         if (result != null) {
@@ -118,12 +147,11 @@ class _WebPageState extends State<WebPage> {
     return PopScope(
       canPop: false,
       onPopInvoked: (didPop) async {
-        debugPrint(didPop.toString());
-        if (!didPop) return;
+        if (didPop) return;
         if (await _controller.canGoBack()) {
           _controller.goBack();
         } else {
-          // Navigator.pop(context);
+          Navigator.pop(context);
         }
       },
       child: Scaffold(

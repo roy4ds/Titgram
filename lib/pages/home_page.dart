@@ -60,7 +60,7 @@ class _HomePageState extends State<HomePage> {
         ListTile(
           onTap: () {
             Navigator.pop(context);
-            context.goNamed('web', pathParameters: {"res": d});
+            context.pushNamed('web', pathParameters: {"res": d});
           },
           title: Text(d.capitalize()),
         ),
@@ -192,8 +192,7 @@ class _HomePageState extends State<HomePage> {
                   String? photo = channel.photo?.smallFileId;
                   return ListTile(
                     onTap: () {
-                      context.goNamed('view',
-                          pathParameters: {"channel": jsonEncode(channel)});
+                      context.pushNamed('view', extra: {"channel": channel});
                     },
                     leading: SizedBox(
                       height: 50,

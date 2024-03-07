@@ -12,7 +12,7 @@ class AppOpenAdManager {
   AppOpenAd? _appOpenAd;
   bool _isShowingAd = false;
 
-  void loadAd() {
+  void loadAd({bool show = false}) {
     AppOpenAd.load(
       adUnitId: Adunits.getAppOpenAdunit,
       orientation: AppOpenAd.orientationPortrait,
@@ -26,7 +26,9 @@ class AppOpenAdManager {
           debugPrint('AppOpenAd failed to load: $error');
         },
       ),
-    );
+    ).then((value) {
+      if (show) showAdIfAvailable();
+    });
   }
 
   /// Whether an ad is available to be shown.

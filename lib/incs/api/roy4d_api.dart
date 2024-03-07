@@ -56,7 +56,12 @@ class Roy4dApi {
   Future<Map<String, CountryModel>?> getCountries() async {
     if (countries.isEmpty) {
       var url = Uri.https('roy4d.com', '/surface/.map/.incs/api/getCountries');
-      var response = await http.post(url, headers: headers());
+      dynamic response;
+      try {
+        response = await http.post(url, headers: headers());
+      } on http.ClientException catch (e) {
+        showSnack(e.message);
+      }
       if (response.statusCode != 200) {
         showSnack('Request failed with status: ${response.statusCode}.');
       } else {
@@ -72,7 +77,12 @@ class Roy4dApi {
     int limit = 15;
     var url = Uri.https('roy4d.com', '/allgram/.bin/getChannels',
         {"path": "0", "range": "$offset,$limit"});
-    var response = await http.post(url, headers: headers());
+    dynamic response;
+    try {
+      response = await http.post(url, headers: headers());
+    } on http.ClientException catch (e) {
+      return showSnack(e.message);
+    }
     if (response.statusCode != 200) {
       return showSnack('Request failed with status: ${response.statusCode}.');
     } else {
@@ -112,7 +122,7 @@ class Roy4dApi {
     if (ss.length == 2 && c.containsKey(ss)) {
       filtrate[ss] = c[ss]!;
     } else {
-      String sss = s.toLowerCase();
+      // String sss = s.toLowerCase();
     }
     c = filtrate;
   }
