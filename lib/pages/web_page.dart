@@ -116,15 +116,32 @@ class _WebPageState extends State<WebPage> {
           },
         );
       myAndroidController.setOnShowFileSelector((params) async {
-        debugPrint(params.toString());
-        FilePickerResult? result = await FilePicker.platform.pickFiles();
-        String file;
+        debugPrint(params.acceptTypes.toString());
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+            type: FileType.custom,
+            allowedExtensions: params.acceptTypes,
+            allowCompression: true,
+            lockParentWindow: true,
+            allowMultiple:
+                params.mode == FileSelectorMode.openMultiple ? true : false);
+
+        List<String> files = [];
         if (result != null) {
-          file = result.files.single.path!;
+          if (result.isSinglePick) {
+            files.add(result.files.single.path!);
+          } else {
+            if (result.paths.isNotEmpty) {
+              result.paths.every((path) {
+                if (path == null || path.isEmpty) return false;
+                files.add(path);
+                return true;
+              });
+            }
+          }
         } else {
-          file = "";
+          files.add("");
         }
-        return [file]; // Uris
+        return files; // Uris
       });
     }
     _controller = controller;

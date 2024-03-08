@@ -9,9 +9,15 @@ import 'package:titgram/models/user_model.dart';
 
 class Roy4dApi {
   final BuildContext context;
+  // streamchannels
   static final StreamController<List<ChannelModel>> _channelStreamCtrl =
       StreamController<List<ChannelModel>>.broadcast();
   static Stream<List<ChannelModel>> get channelStreamCtrl =>
+      _channelStreamCtrl.stream;
+  // streamgroups
+  static final StreamController<List<ChannelModel>> _groupStreamCtrl =
+      StreamController<List<ChannelModel>>.broadcast();
+  static Stream<List<ChannelModel>> get groupStreamCtrl =>
       _channelStreamCtrl.stream;
   static late String selectedCountry;
 
@@ -24,9 +30,14 @@ class Roy4dApi {
     };
   }
 
-  void showSnack(String response) {
+  dynamic showSnack(String response) {
     final SnackBar snackBar = SnackBar(content: Text(response));
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return null;
   }
 
   Future<User?> auth(Map<String, dynamic> user) async {
@@ -35,8 +46,12 @@ class Roy4dApi {
       return null;
     }
     var url = Uri.https('roy4d.com', "/user/$action");
-    var response =
-        await http.post(url, body: {"user": jsonEncode(user['user'])});
+    dynamic response;
+    try {
+      response = await http.post(url, body: {"user": jsonEncode(user['user'])});
+    } on http.ClientException catch (e) {
+      return showSnack(e.message);
+    }
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
     } else {
@@ -60,10 +75,10 @@ class Roy4dApi {
       try {
         response = await http.post(url, headers: headers());
       } on http.ClientException catch (e) {
-        showSnack(e.message);
+        return showSnack(e.message);
       }
       if (response.statusCode != 200) {
-        showSnack('Request failed with status: ${response.statusCode}.');
+        return showSnack('Request failed with status: ${response.statusCode}.');
       } else {
         countries.addAll(countryModelFromJson(response.body));
       }
@@ -94,15 +109,22 @@ class Roy4dApi {
 
   List groups = [];
   Future getGroups() async {
-    int offset = channels.length;
+    int offset = groups.length;
     int limit = 15;
     var url = Uri.https('roy4d.com', '/allgram/.bin/getGroups',
         {'path': 1, 'range': "$offset,$limit"});
-    var response = await http.post(url, headers: headers());
+    dynamic response;
+    try {
+      response = await http.post(url, headers: headers());
+    } on http.ClientException catch (e) {
+      return showSnack(e.message);
+    }
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      groups.addAll(channelModelFromJson(response.body));
+      var res = channelModelFromJson(response.body);
+      groups.addAll(res);
+      _groupStreamCtrl.sink.add(res);
     }
   }
 
@@ -116,19 +138,40 @@ class Roy4dApi {
     }
   }
 
-  void searchCountryFromMaplist(Map<String, CountryModel> c, String s) {
-    String ss = s.toUpperCase();
-    Map<String, CountryModel> filtrate = c;
-    if (ss.length == 2 && c.containsKey(ss)) {
-      filtrate[ss] = c[ss]!;
-    } else {
-      // String sss = s.toLowerCase();
-    }
-    c = filtrate;
-  }
-
   showCountryBottomSheetSelector(TextEditingController dc) {
-    ValueNotifier<Map<String, CountryModel>> cc = ValueNotifier({});
+    Map<String, CountryModel> countries = {};
+    ValueNotifier<Map<String, CountryModel>> myCountries = ValueNotifier({});
+    Map<String, Map<String, CountryModel>> filtrate = {};
+
+    void searchCountryFromMaplist(String s) {
+      String ss = s.toUpperCase();
+      if (ss.length == 2 && countries.containsKey(ss)) {
+        Map<String, CountryModel> x = {};
+        x[ss] = countries[ss]!;
+        myCountries.value = x;
+      } else {
+        String sss = s.toLowerCase();
+        countries.forEach((key, ctr) {
+          String cname = ctr.name.toLowerCase();
+          String pcode = ctr.phonecode.toString();
+          Map<String, CountryModel> x = {};
+          if (cname.contains(sss) || pcode.contains(sss)) {
+            x[key] = ctr;
+            if (!filtrate.containsKey(sss)) {
+              filtrate[sss] = x;
+            } else {
+              filtrate[sss]!.addAll(x);
+            }
+          }
+        });
+        if (!filtrate.containsKey(sss) || filtrate[sss]!.isEmpty) {
+          myCountries.value = {};
+        } else {
+          myCountries.value = filtrate[sss]!;
+        }
+      }
+    }
+
     return showModalBottomSheet(
       context: context,
       useSafeArea: true,
@@ -149,19 +192,18 @@ class Roy4dApi {
                 child: Text("No data found"),
               );
             }
-            cc.value = snapshot.data!;
+            countries = snapshot.data!;
+            myCountries.value = countries;
             return Column(
               children: [
                 Container(
                   alignment: Alignment.center,
                   child: TextFormField(
                     onChanged: (value) {
-                      searchCountryFromMaplist(cc.value, value);
-                    },
-                    onFieldSubmitted: (value) {
-                      searchCountryFromMaplist(cc.value, value);
+                      searchCountryFromMaplist(value);
                     },
                     textInputAction: TextInputAction.search,
+                    textCapitalization: TextCapitalization.words,
                     decoration: const InputDecoration(
                       hintText: "Search",
                       prefixIcon: Icon(Icons.search),
@@ -170,8 +212,13 @@ class Roy4dApi {
                 ),
                 Expanded(
                   child: ValueListenableBuilder(
-                    valueListenable: cc,
+                    valueListenable: myCountries,
                     builder: (context, countries, child) {
+                      if (countries.isEmpty) {
+                        return const Center(
+                          child: Text("No match found"),
+                        );
+                      }
                       Iterable cKeys = countries.keys;
                       int iCount = cKeys.length;
                       return ListView.builder(
