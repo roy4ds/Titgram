@@ -147,6 +147,9 @@ class _WebPageState extends State<WebPage> {
       final myAndroidController =
           controller.platform as AndroidWebViewController;
       myAndroidController
+        ..setOnPlatformPermissionRequest((request) {
+          request.grant();
+        })
         ..setMediaPlaybackRequiresUserGesture(false)
         ..setGeolocationPermissionsPromptCallbacks(
           onShowPrompt: (request) async {
