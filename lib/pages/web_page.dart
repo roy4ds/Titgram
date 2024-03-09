@@ -59,6 +59,29 @@ class _WebPageState extends State<WebPage> {
     }
   }
 
+  FileType getFileType(FileSelectorParams params) {
+    if (params.acceptTypes.isEmpty) {
+      return FileType.any;
+    }
+    List b = [];
+    for (var acpt in params.acceptTypes) {
+      b.add(acpt.split('/')[0]);
+    }
+    switch (b[0]) {
+      case 'audio':
+        return FileType.audio;
+
+      case 'image':
+        return FileType.image;
+
+      case 'video':
+        return FileType.video;
+
+      default:
+        return FileType.media;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -107,7 +130,7 @@ class _WebPageState extends State<WebPage> {
               return NavigationDecision.prevent;
             }
             interBit++;
-            if (interBit % 3 > 0) adManager.showInter();
+            if (interBit % 3 == 0) adManager.showInter();
             return NavigationDecision.navigate;
           },
         ),
@@ -136,47 +159,27 @@ class _WebPageState extends State<WebPage> {
           },
         );
       myAndroidController.setOnShowFileSelector((params) async {
-        debugPrint(params.acceptTypes.toString());
         FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.custom,
-            allowedExtensions: params.acceptTypes,
+            type: getFileType(params),
             allowCompression: true,
             lockParentWindow: true,
             allowMultiple:
                 params.mode == FileSelectorMode.openMultiple ? true : false);
 
         List<String> files = [];
-        if (result != null) {
-          if (result.isSinglePick) {
-            files.add(result.files.single.path!);
-          } else {
-            if (result.paths.isNotEmpty) {
-              result.paths.every((path) {
-                if (path == null || path.isEmpty) return false;
-                files.add(path);
-                return true;
-              });
-            }
-          }
+        if (result == null) return [""];
+        if (result.isSinglePick) {
+          File file = File(result.files.single.path!);
+          files.add(file.uri.toString());
         } else {
-          files.add("");
+          for (var path in result.paths) {
+            files.add(File(path!).uri.toString());
+          }
         }
-        return files; // Uris
+        return files;
       });
     }
     _controller = controller;
-  }
-
-  Future<List<String>> selectMultipleFiles() async {
-    FilePickerResult? result =
-        await FilePicker.platform.pickFiles(allowMultiple: true);
-    List<String> files = [];
-    if (result != null) {
-      // files.addAll((result.paths).toList());
-    } else {
-      files.add("");
-    }
-    return files;
   }
 
   @override

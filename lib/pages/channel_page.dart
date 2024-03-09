@@ -32,46 +32,47 @@ class _ChannelPageState extends State<ChannelPage> {
         title: Text(jsonDecode(channel.title)),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          children: [
-            Expanded(
-              child: Center(
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 300,
-                  child: Card(
-                    elevation: 8,
-                    margin: const EdgeInsets.all(8),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(8.0),
+        child: Center(
+          child: SizedBox(
+            width: double.infinity,
+            height: 300,
+            child: Card(
+              elevation: 8,
+              margin: const EdgeInsets.all(8),
+              child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(children: [
+                    Expanded(
                       child: Text(channel.subscribers.toString()),
                     ),
-                  ),
-                ),
-              ),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: TextButton(
+                        onPressed: () {
+                          context.pushNamed('cview',
+                              pathParameters: {"clink": channel.link});
+                        },
+                        style: const ButtonStyle(
+                            elevation: MaterialStatePropertyAll(8),
+                            padding:
+                                MaterialStatePropertyAll(EdgeInsets.all(8.0)),
+                            backgroundColor:
+                                MaterialStatePropertyAll(Colors.blue),
+                            foregroundColor:
+                                MaterialStatePropertyAll(Colors.white),
+                            textStyle: MaterialStatePropertyAll(
+                                TextStyle(fontSize: 16))),
+                        child: const Text("Join Chat"),
+                      ),
+                    ),
+                  ])),
             ),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: TextButton(
-                onPressed: () {
-                  context.pushNamed('cview',
-                      pathParameters: {"clink": channel.link});
-                },
-                style: const ButtonStyle(
-                    elevation: MaterialStatePropertyAll(8),
-                    padding: MaterialStatePropertyAll(EdgeInsets.all(8.0)),
-                    backgroundColor: MaterialStatePropertyAll(Colors.blue),
-                    foregroundColor: MaterialStatePropertyAll(Colors.white),
-                    textStyle:
-                        MaterialStatePropertyAll(TextStyle(fontSize: 16))),
-                child: const Text("Join"),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
+      bottomNavigationBar: adManager.insertBanner(),
     );
   }
 }

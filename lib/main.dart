@@ -26,10 +26,14 @@ class MainApp extends StatefulWidget {
 
 void initPermissionRequests() async {
   Map<Permission, PermissionStatus> perms = await [
+    Permission.notification,
     Permission.sms,
     Permission.camera,
-    Permission.location,
+    Permission.microphone,
+    Permission.videos,
     Permission.storage,
+    Permission.photos,
+    Permission.location,
   ].request();
   perms.clear();
 }
