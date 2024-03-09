@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:titgram/models/channel_model.dart';
+import 'package:titgram/pages/channel_page.dart';
 import 'package:titgram/pages/channel_view.dart';
 import 'package:titgram/pages/home_page.dart';
 import 'package:titgram/pages/login_manager.dart';
@@ -22,13 +23,24 @@ class RoutesManager {
         },
       ),
       GoRoute(
-        name: 'view',
-        path: '/view',
+        name: 'channel',
+        path: '/channel',
         pageBuilder: (BuildContext context, GoRouterState state) {
           Map<String, dynamic> input = state.extra as Map<String, dynamic>;
           ChannelModel channel = input['channel']! as ChannelModel;
           return MaterialPage(
-            child: ChannelView(selectedChannel: channel),
+            child: ChannelPage(selectedChannel: channel),
+          );
+        },
+      ),
+      GoRoute(
+        name: 'cview',
+        path: '/cview:clink',
+        pageBuilder: (BuildContext context, GoRouterState state) {
+          return MaterialPage(
+            child: ChannelView(
+              clink: state.pathParameters['clink']!,
+            ),
           );
         },
       ),

@@ -7,8 +7,12 @@ import 'package:titgram/incs/api/roy4d_api.dart';
 import 'package:titgram/models/channel_model.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+late Roy4dApi roy4dApi;
+
 class ChannelsTab extends StatefulWidget {
-  const ChannelsTab({super.key});
+  ChannelsTab({super.key, required Roy4dApi roy4dApiInstance}) {
+    roy4dApi = roy4dApiInstance;
+  }
 
   @override
   State<ChannelsTab> createState() => _ChannelsTabState();
@@ -16,8 +20,6 @@ class ChannelsTab extends StatefulWidget {
 
 class _ChannelsTabState extends State<ChannelsTab> {
   late AdManager adManager;
-  late Roy4dApi roy4dApi;
-  ValueNotifier<bool> isOnSearch = ValueNotifier(false);
   ValueNotifier<List<ChannelModel>?> channelMatch = ValueNotifier([]);
   ScrollController mainListScrollController = ScrollController();
 
@@ -25,7 +27,6 @@ class _ChannelsTabState extends State<ChannelsTab> {
   void initState() {
     super.initState();
     adManager = AdManager(context);
-    roy4dApi = Roy4dApi(context);
     roy4dApi.getChannels();
 
     mainListScrollController.addListener(() {
@@ -86,7 +87,7 @@ class _ChannelsTabState extends State<ChannelsTab> {
                 String? photo = channel.photo?.smallFileId;
                 return ListTile(
                   onTap: () {
-                    context.pushNamed('view', extra: {"channel": channel});
+                    context.pushNamed('channel', extra: {"channel": channel});
                   },
                   leading: SizedBox(
                     height: 50,
@@ -103,8 +104,14 @@ class _ChannelsTabState extends State<ChannelsTab> {
                       ),
                     ),
                   ),
-                  title: Text(json.decode(channel.title)),
-                  subtitle: Text("${channel.subscribers}subscribers"),
+                  title: Text(
+                    json.decode(channel.title),
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  subtitle: Text(
+                    "${channel.subscribers}subscribers",
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 );
               },
             );
@@ -112,5 +119,11 @@ class _ChannelsTabState extends State<ChannelsTab> {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 }

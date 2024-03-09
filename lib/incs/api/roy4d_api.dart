@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:titgram/models/channel_model.dart';
 import 'package:titgram/models/country_model.dart';
@@ -9,19 +10,30 @@ import 'package:titgram/models/user_model.dart';
 
 class Roy4dApi {
   final BuildContext context;
+
   // streamchannels
   static final StreamController<List<ChannelModel>> _channelStreamCtrl =
       StreamController<List<ChannelModel>>.broadcast();
   static Stream<List<ChannelModel>> get channelStreamCtrl =>
       _channelStreamCtrl.stream;
+
   // streamgroups
   static final StreamController<List<ChannelModel>> _groupStreamCtrl =
       StreamController<List<ChannelModel>>.broadcast();
   static Stream<List<ChannelModel>> get groupStreamCtrl =>
-      _channelStreamCtrl.stream;
+      _groupStreamCtrl.stream;
+
   static late String selectedCountry;
 
-  Roy4dApi(this.context);
+  dynamic dataBox;
+  Roy4dApi(this.context) {
+    init();
+  }
+
+  void init() async {
+    await Hive.openBox('adbx');
+    dataBox = Hive.box('adbx');
+  }
 
   Map<String, String> headers() {
     return {
@@ -31,9 +43,9 @@ class Roy4dApi {
   }
 
   dynamic showSnack(String response) {
-    final SnackBar snackBar = SnackBar(content: Text(response));
     try {
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      final SnackBar snackBar = SnackBar(content: Text(response));
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(snackBar);
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -86,8 +98,11 @@ class Roy4dApi {
     return countries;
   }
 
-  List channels = [];
-  Future getChannels() async {
+  List<ChannelModel> channels = [];
+  Future getChannels({bool resume = false}) async {
+    if (resume == true && channels.isNotEmpty) {
+      return _channelStreamCtrl.sink.add(channels);
+    }
     int offset = channels.length;
     int limit = 15;
     var url = Uri.https('roy4d.com', '/allgram/.bin/getChannels',
@@ -101,18 +116,25 @@ class Roy4dApi {
     if (response.statusCode != 200) {
       return showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      var res = channelModelFromJson(response.body);
-      channels.addAll(res);
-      _channelStreamCtrl.sink.add(res);
+      try {
+        var res = channelModelFromJson(response.body);
+        channels.addAll(res);
+        _channelStreamCtrl.sink.add(res);
+      } on FormatException catch (e) {
+        showSnack(e.message);
+      }
     }
   }
 
-  List groups = [];
-  Future getGroups() async {
+  List<ChannelModel> groups = [];
+  Future getGroups({bool resume = false}) async {
+    if (resume == true && channels.isNotEmpty) {
+      return _groupStreamCtrl.sink.add(groups);
+    }
     int offset = groups.length;
     int limit = 15;
-    var url = Uri.https('roy4d.com', '/allgram/.bin/getGroups',
-        {'path': 1, 'range': "$offset,$limit"});
+    var url = Uri.https('roy4d.com', '/allgram/.bin/getChannels',
+        {"path": "1", "range": "$offset,$limit"});
     dynamic response;
     try {
       response = await http.post(url, headers: headers());
@@ -122,9 +144,16 @@ class Roy4dApi {
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      var res = channelModelFromJson(response.body);
-      groups.addAll(res);
-      _groupStreamCtrl.sink.add(res);
+      List<ChannelModel> res = [];
+      try {
+        res = channelModelFromJson(response.body);
+        groups.addAll(res);
+        _groupStreamCtrl.sink.add(res);
+      } on FormatException catch (e) {
+        return showSnack(e.message);
+      } on TypeError catch (e) {
+        return showSnack(e.toString());
+      }
     }
   }
 

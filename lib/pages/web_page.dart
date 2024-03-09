@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:titgram/ads/admob/admanager.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:webview_flutter_android/webview_flutter_android.dart';
 
@@ -21,7 +22,7 @@ class WebPage extends StatefulWidget {
 class _WebPageState extends State<WebPage> {
   var loadingPercentage = 0;
   double interBit = 0;
-
+  late String url;
   late AdManager adManager;
   late final WebViewController _controller;
   late final PlatformWebViewControllerCreationParams params;
@@ -41,13 +42,31 @@ class _WebPageState extends State<WebPage> {
     _controller.setUserAgent(_packageInfo.packageName);
   }
 
+  showSnack(String sms) {
+    ScaffoldMessenger.maybeOf(context)
+        ?.showSnackBar(SnackBar(content: Text(sms)));
+  }
+
+  Future<void> launchUrlScheme(String url) async {
+    try {
+      if (!await launchUrl(Uri.parse(url))) {
+        throw Exception('Could not launch $url');
+      }
+    } on FormatException catch (e) {
+      showSnack(e.message);
+    } catch (e) {
+      showSnack(e.toString());
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    String res = configs['res'] ?? "";
-    String url = "https://roy4d.com/$res";
     adManager = AdManager(context);
     _initPackageInfo();
+
+    String res = configs['res'] ?? "";
+    url = res.startsWith('https://') ? res : "https://roy4d.com/$res";
 
     params = const PlatformWebViewControllerCreationParams();
     final WebViewController controller =
@@ -83,7 +102,8 @@ class _WebPageState extends State<WebPage> {
 							''');
           },
           onNavigationRequest: (NavigationRequest request) {
-            if (request.url.startsWith('https://www.youtube.com/')) {
+            if (!request.url.startsWith('https://')) {
+              launchUrlScheme(request.url);
               return NavigationDecision.prevent;
             }
             interBit++;

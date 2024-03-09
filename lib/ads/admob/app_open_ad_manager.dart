@@ -21,14 +21,13 @@ class AppOpenAdManager {
         onAdLoaded: (ad) {
           _appOpenLoadTime = DateTime.now();
           _appOpenAd = ad;
+          if (show) showAdIfAvailable();
         },
         onAdFailedToLoad: (error) {
           debugPrint('AppOpenAd failed to load: $error');
         },
       ),
-    ).then((value) {
-      if (show) showAdIfAvailable();
-    });
+    );
   }
 
   /// Whether an ad is available to be shown.

@@ -7,8 +7,12 @@ import 'package:titgram/incs/api/roy4d_api.dart';
 import 'package:titgram/models/channel_model.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+late Roy4dApi roy4dApi;
+
 class GroupsTab extends StatefulWidget {
-  const GroupsTab({super.key});
+  GroupsTab({super.key, required Roy4dApi roy4dApiInstance}) {
+    roy4dApi = roy4dApiInstance;
+  }
 
   @override
   State<GroupsTab> createState() => _GroupsTabState();
@@ -16,21 +20,18 @@ class GroupsTab extends StatefulWidget {
 
 class _GroupsTabState extends State<GroupsTab> {
   late AdManager adManager;
-  late Roy4dApi roy4dApi;
-  ValueNotifier<bool> isOnSearch = ValueNotifier(false);
   ValueNotifier<List<ChannelModel>?> groupMatch = ValueNotifier([]);
-  ScrollController mainListScrollController = ScrollController();
+  ScrollController groupListScrollController = ScrollController();
 
   @override
   void initState() {
     adManager = AdManager(context);
     super.initState();
-    roy4dApi = Roy4dApi(context);
     roy4dApi.getGroups();
 
-    mainListScrollController.addListener(() {
-      double maxScroll = mainListScrollController.position.maxScrollExtent;
-      double currentScroll = mainListScrollController.position.pixels;
+    groupListScrollController.addListener(() {
+      double maxScroll = groupListScrollController.position.maxScrollExtent;
+      double currentScroll = groupListScrollController.position.pixels;
       double delta = 200.0; // or something else..
       if (maxScroll - currentScroll <= delta) {
         roy4dApi.getGroups();
@@ -75,7 +76,7 @@ class _GroupsTabState extends State<GroupsTab> {
               }
             }
             return ListView.builder(
-              controller: mainListScrollController,
+              controller: groupListScrollController,
               itemCount: smartList.length,
               itemBuilder: (context, index) {
                 var channel = smartList[index];
@@ -86,7 +87,7 @@ class _GroupsTabState extends State<GroupsTab> {
                 String? photo = channel.photo?.smallFileId;
                 return ListTile(
                   onTap: () {
-                    context.pushNamed('view', extra: {"channel": channel});
+                    context.pushNamed('channel', extra: {"channel": channel});
                   },
                   leading: SizedBox(
                     height: 50,
@@ -103,8 +104,14 @@ class _GroupsTabState extends State<GroupsTab> {
                       ),
                     ),
                   ),
-                  title: Text(json.decode(channel.title)),
-                  subtitle: Text("${channel.subscribers}subscribers"),
+                  title: Text(
+                    json.decode(channel.title),
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  subtitle: Text(
+                    "${channel.subscribers}subscribers",
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 );
               },
             );
@@ -112,5 +119,11 @@ class _GroupsTabState extends State<GroupsTab> {
         );
       },
     );
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 }

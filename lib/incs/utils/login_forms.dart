@@ -52,6 +52,7 @@ class LoginForms {
             ),
             SizedBox(
               width: double.infinity,
+              height: 55,
               child: ElevatedButton(
                 child: const Text('Login'),
                 onPressed: () {
@@ -122,7 +123,7 @@ class LoginForms {
             controller: lnamecontroller,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
-              label: const Text("First name"),
+              label: const Text("Last name"),
               border: FormMaster.border(),
             ),
           ),
@@ -209,6 +210,7 @@ class LoginForms {
           ),
           SizedBox(
             width: double.infinity,
+            height: 55,
             child: ElevatedButton(
               onPressed: () {
                 if (signupFormKey.currentState!.validate()) {
