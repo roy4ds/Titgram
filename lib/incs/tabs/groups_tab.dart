@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -22,27 +23,39 @@ class _GroupsTabState extends State<GroupsTab> {
   late AdManager adManager;
   ValueNotifier<List<ChannelModel>?> groupMatch = ValueNotifier([]);
   ScrollController groupListScrollController = ScrollController();
+  // streamgroups
+  final StreamController<List<ChannelModel>> _groupStreamCtrl =
+      StreamController<List<ChannelModel>>.broadcast();
+  Stream<List<ChannelModel>> get groupStreamCtrl => _groupStreamCtrl.stream;
 
   @override
   void initState() {
-    adManager = AdManager(context);
     super.initState();
-    roy4dApi.getGroups();
+    adManager = AdManager(context);
+    roy4dApi.updateContext(context);
+    getGroups(resume: true);
 
     groupListScrollController.addListener(() {
       double maxScroll = groupListScrollController.position.maxScrollExtent;
       double currentScroll = groupListScrollController.position.pixels;
       double delta = 200.0; // or something else..
       if (maxScroll - currentScroll <= delta) {
-        roy4dApi.getGroups();
+        getGroups();
       }
+    });
+  }
+
+  void getGroups({bool resume = false}) {
+    roy4dApi.getGroups(resume: resume).then((groups) {
+      if (groups == null) return;
+      _groupStreamCtrl.sink.add(groups);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<ChannelModel>>(
-      stream: Roy4dApi.groupStreamCtrl,
+      stream: groupStreamCtrl,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -123,7 +136,7 @@ class _GroupsTabState extends State<GroupsTab> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    groupListScrollController.dispose();
     super.dispose();
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -21,28 +22,41 @@ class ChannelsTab extends StatefulWidget {
 class _ChannelsTabState extends State<ChannelsTab> {
   late AdManager adManager;
   ValueNotifier<List<ChannelModel>?> channelMatch = ValueNotifier([]);
-  ScrollController mainListScrollController = ScrollController();
+  ScrollController channelListScrollController = ScrollController();
+
+  // streamchannels
+  final StreamController<List<ChannelModel>> _channelStreamCtrl =
+      StreamController<List<ChannelModel>>.broadcast();
+  Stream<List<ChannelModel>> get channelStreamCtrl => _channelStreamCtrl.stream;
 
   @override
   void initState() {
     super.initState();
     adManager = AdManager(context);
-    roy4dApi.getChannels();
+    roy4dApi.updateContext(context);
+    getChannels(resume: true);
 
-    mainListScrollController.addListener(() {
-      double maxScroll = mainListScrollController.position.maxScrollExtent;
-      double currentScroll = mainListScrollController.position.pixels;
+    channelListScrollController.addListener(() {
+      double maxScroll = channelListScrollController.position.maxScrollExtent;
+      double currentScroll = channelListScrollController.position.pixels;
       double delta = 200.0; // or something else..
       if (maxScroll - currentScroll <= delta) {
-        roy4dApi.getChannels();
+        getChannels();
       }
+    });
+  }
+
+  void getChannels({bool resume = false}) {
+    roy4dApi.getChannels(resume: resume).then((channels) {
+      if (channels == null) return;
+      _channelStreamCtrl.sink.add(channels);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<ChannelModel>>(
-      stream: Roy4dApi.channelStreamCtrl,
+      stream: channelStreamCtrl,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(
@@ -76,7 +90,7 @@ class _ChannelsTabState extends State<ChannelsTab> {
               }
             }
             return ListView.builder(
-              controller: mainListScrollController,
+              controller: channelListScrollController,
               itemCount: smartList.length,
               itemBuilder: (context, index) {
                 var channel = smartList[index];
@@ -123,7 +137,7 @@ class _ChannelsTabState extends State<ChannelsTab> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
+    channelListScrollController.dispose();
     super.dispose();
   }
 }

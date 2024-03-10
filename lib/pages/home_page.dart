@@ -7,7 +7,10 @@ import 'package:titgram/incs/tabs/bots_tab.dart';
 import 'package:titgram/incs/tabs/channels_tab.dart';
 import 'package:titgram/incs/utils/extensions.dart';
 import 'package:titgram/incs/tabs/groups_tab.dart';
+import 'package:titgram/models/channel_model.dart';
 import 'package:titgram/pages/login_manager.dart';
+
+Roy4dApi roy4dApi = Roy4dApi();
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,25 +21,25 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late AdManager adManager;
-  late Roy4dApi roy4dApi;
   final box = Hive.box('app');
   ValueNotifier<bool> isOnSearch = ValueNotifier(false);
 
   @override
   void initState() {
     adManager = AdManager(context);
+    roy4dApi.updateContext(context);
     super.initState();
-    roy4dApi = Roy4dApi(context);
   }
 
   List<Widget> drawables(BuildContext context) {
     List<String> x = [
       'shops',
-      'maps',
-      'business',
-      'stories',
       'markets',
-      'affiliates'
+      'business',
+      'ads',
+      'stories',
+      'affiliates',
+      'travel'
     ];
     List<Widget> y = [];
     for (var d in x) {
@@ -44,6 +47,7 @@ class _HomePageState extends State<HomePage> {
         ListTile(
           onTap: () {
             Navigator.pop(context);
+            if (d == 'travel') d = 'surface';
             context.pushNamed('web', pathParameters: {"res": d});
           },
           title: Text(d.capitalize()),
@@ -51,6 +55,28 @@ class _HomePageState extends State<HomePage> {
       );
     }
     return y;
+  }
+
+  Map<String, List<ChannelModel>> filtants = {};
+  void searchChat(String text, int type) async {
+    List<ChannelModel>? src = [];
+    List<ChannelModel>? matches = [];
+    if (type == 0) {
+      src = await roy4dApi.getChannels(resume: true);
+    } else if (type == 1) {
+      src = await roy4dApi.getGroups(resume: true);
+    } else {
+      src = null;
+    }
+    if (src == null || src.isEmpty) {
+      return;
+    } else {
+      for (ChannelModel channel in src) {
+        if (channel.title.toLowerCase().contains(text.toLowerCase())) {
+          matches.add(channel);
+        }
+      }
+    }
   }
 
   @override
@@ -62,9 +88,9 @@ class _HomePageState extends State<HomePage> {
         if (didPop) {
           return;
         }
-        // if (Navigator.of(context).canPop()) {
-        // Navigator.pop(context);
-        // }
+        if (Navigator.of(context).canPop()) {
+          Navigator.pop(context);
+        }
       },
       child: DefaultTabController(
         length: 3,
@@ -86,6 +112,10 @@ class _HomePageState extends State<HomePage> {
                           hintText: "Search...",
                           prefixIcon: Icon(Icons.search),
                         ),
+                        onChanged: (value) {
+                          searchChat(
+                              value, DefaultTabController.of(context).index);
+                        },
                       ),
                     );
                   } else {
@@ -121,26 +151,36 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 children: [
                   DrawerHeader(
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      alignment: Alignment.center,
-                      child: Stack(
-                        children: [
-                          const Icon(Icons.headphones),
-                          Positioned(
-                            bottom: 20,
-                            right: 20,
-                            child: IconButton(
-                              onPressed: () {
-                                box.put('isdark', !isdark);
-                              },
-                              icon: Icon(isdark != true
-                                  ? Icons.light_mode
-                                  : Icons.dark_mode_rounded),
+                    padding: const EdgeInsets.all(8),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Center(
+                          child: Container(
+                            height: 84,
+                            width: 84,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.fromBorderSide(
+                                BorderSide(color: Colors.orangeAccent),
+                              ),
                             ),
+                            child: const Icon(Icons.headphones),
                           ),
-                        ],
-                      ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: IconButton(
+                            onPressed: () {
+                              box.put('isdark', !isdark);
+                            },
+                            icon: Icon(isdark != true
+                                ? Icons.light_mode
+                                : Icons.dark_mode_rounded),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   Expanded(

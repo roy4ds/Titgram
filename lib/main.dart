@@ -42,9 +42,9 @@ class _MainAppState extends State<MainApp> {
   @override
   void initState() {
     super.initState();
-    initPermissionRequests();
     AppOpenAdManager appOpenAdManager = AppOpenAdManager()..loadAd(show: true);
     AppLifecycleReactor(appOpenAdManager: appOpenAdManager);
+    initPermissionRequests();
   }
 
   @override

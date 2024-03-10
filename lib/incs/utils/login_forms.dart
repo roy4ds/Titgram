@@ -5,7 +5,10 @@ import 'package:titgram/pages/login_manager.dart';
 
 class LoginForms {
   final BuildContext context;
-  LoginForms(this.context);
+  late Roy4dApi roy4dApi;
+  LoginForms(this.context) {
+    roy4dApi = Roy4dApi(ctxt: context);
+  }
 
   final loginFormKey = GlobalKey<FormState>();
   final signupFormKey = GlobalKey<FormState>();
@@ -63,7 +66,7 @@ class LoginForms {
                       "user": unamecontroller.text,
                       "passwd": passwdcontroller.text
                     };
-                    Roy4dApi(context).auth(user).then((value) {
+                    roy4dApi.auth(user).then((value) {
                       if (value != null) {
                         LoginManager().saveLoginSession(context, value);
                       }
@@ -84,7 +87,7 @@ class LoginForms {
   void selectDate() {
     showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: DateTime(2000, 1, 1),
       firstDate: DateTime(1960),
       lastDate: DateTime.now(),
     ).then((pickedDate) {
@@ -138,14 +141,11 @@ class LoginForms {
                 child: TextFormField(
                   controller: dialcodecontroller,
                   onTap: () {
-                    Roy4dApi(context)
-                        .showCountryBottomSheetSelector(dialcodecontroller);
+                    roy4dApi.showCountryBottomSheetSelector(
+                        dialcodecontroller, countrycontroller);
                   },
                   decoration: InputDecoration(
                       hintText: "+1", suffixText: countrycontroller.text),
-                  onChanged: (value) {
-                    countrycontroller.text = Roy4dApi.selectedCountry;
-                  },
                   textAlign: TextAlign.center,
                   readOnly: true,
                 ),
@@ -157,12 +157,13 @@ class LoginForms {
                 child: TextFormField(
                   controller: mobilecontroller,
                   keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(hintText: "000 000 000"),
                 ),
               ),
             ],
           ),
           const SizedBox(
-            height: 20,
+            height: 30,
           ),
           TextFormField(
             controller: dobcontroller,
@@ -226,7 +227,7 @@ class LoginForms {
                     "pwd": pwdcontroller.text,
                     "cpwd": cpwdcontroller.text
                   };
-                  Roy4dApi(context).auth(user).then((value) {
+                  roy4dApi.auth(user).then((value) {
                     if (value != null) {
                       LoginManager().saveLoginSession(context, value);
                     }

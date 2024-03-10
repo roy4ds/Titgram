@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:titgram/ads/admob/admanager.dart';
 import 'package:titgram/models/channel_model.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 late ChannelModel channel;
 
@@ -26,6 +27,7 @@ class _ChannelPageState extends State<ChannelPage> {
 
   @override
   Widget build(BuildContext context) {
+    String? photo = channel.photo?.smallFileId;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -38,13 +40,30 @@ class _ChannelPageState extends State<ChannelPage> {
             width: double.infinity,
             height: 300,
             child: Card(
-              elevation: 8,
+              elevation: 4,
               margin: const EdgeInsets.all(8),
               child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(12.0),
                   child: Column(children: [
                     Expanded(
-                      child: Text(channel.subscribers.toString()),
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 96,
+                            width: 96,
+                            clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white12),
+                            ),
+                            child: FadeInImage.memoryNetwork(
+                                placeholder: kTransparentImage,
+                                image:
+                                    "https://roy4d.com/graddle/.bin/ffx/101/$photo.jpg"),
+                          ),
+                          Text("${channel.subscribers}subscribers"),
+                        ],
+                      ),
                     ),
                     SizedBox(
                       width: double.infinity,
@@ -59,7 +78,7 @@ class _ChannelPageState extends State<ChannelPage> {
                             padding:
                                 MaterialStatePropertyAll(EdgeInsets.all(8.0)),
                             backgroundColor:
-                                MaterialStatePropertyAll(Colors.blue),
+                                MaterialStatePropertyAll(Colors.teal),
                             foregroundColor:
                                 MaterialStatePropertyAll(Colors.white),
                             textStyle: MaterialStatePropertyAll(

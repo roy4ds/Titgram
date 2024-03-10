@@ -22,42 +22,47 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    String titleText = isSigningUp ? "Signup" : "Login";
-    String actionText = isSigningUp ? "Login" : "Signup";
     bool isdark = box.get('isdark', defaultValue: false);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          titleText,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 28),
-        ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 12),
-            child: ElevatedButton(
-              child: Text(actionText),
-              onPressed: () {
-                setState(() {
-                  isSigningUp = !isSigningUp;
-                });
-              },
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            "Welcome",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          bottom: const TabBar(tabs: [
+            Tab(
+              child: Text("Login"),
             ),
-          )
-        ],
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
-            child: isSigningUp ? loginForms.signup() : loginForms.login()),
-      ),
-      floatingActionButton: ElevatedButton(
-        onPressed: () {
-          box.put('isdark', !isdark);
-        },
-        style: ElevatedButton.styleFrom(shape: const CircleBorder()),
-        child:
-            Icon(isdark != true ? Icons.light_mode : Icons.dark_mode_rounded),
+            Tab(
+              child: Text("Signup"),
+            )
+          ]),
+        ),
+        body: TabBarView(children: [
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: loginForms.login(),
+            ),
+          ),
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: loginForms.signup(),
+            ),
+          ),
+        ]),
+        floatingActionButton: ElevatedButton(
+          onPressed: () {
+            box.put('isdark', !isdark);
+          },
+          style: ElevatedButton.styleFrom(shape: const CircleBorder()),
+          child:
+              Icon(isdark != true ? Icons.light_mode : Icons.dark_mode_rounded),
+        ),
       ),
     );
   }

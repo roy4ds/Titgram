@@ -10,14 +10,14 @@ String userToJson(User data) => json.encode(data.toJson());
 class User {
   int id;
   String fname;
-  String lname;
-  String uname;
+  String? lname;
+  String? uname;
   String mobile;
   String email;
   String country;
   String? curr;
   String? apps;
-  int uchat;
+  int? uchat;
   String fullName;
   bool? upgrade;
   Eps? eps;

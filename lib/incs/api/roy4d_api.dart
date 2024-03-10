@@ -9,25 +9,18 @@ import 'package:titgram/models/country_model.dart';
 import 'package:titgram/models/user_model.dart';
 
 class Roy4dApi {
-  final BuildContext context;
-
-  // streamchannels
-  static final StreamController<List<ChannelModel>> _channelStreamCtrl =
-      StreamController<List<ChannelModel>>.broadcast();
-  static Stream<List<ChannelModel>> get channelStreamCtrl =>
-      _channelStreamCtrl.stream;
-
-  // streamgroups
-  static final StreamController<List<ChannelModel>> _groupStreamCtrl =
-      StreamController<List<ChannelModel>>.broadcast();
-  static Stream<List<ChannelModel>> get groupStreamCtrl =>
-      _groupStreamCtrl.stream;
-
-  static late String selectedCountry;
+  late BuildContext context;
 
   dynamic dataBox;
-  Roy4dApi(this.context) {
+  Roy4dApi({BuildContext? ctxt}) {
+    if (ctxt != null) {
+      context = ctxt;
+    }
     init();
+  }
+
+  void updateContext(BuildContext ctxt) {
+    context = ctxt;
   }
 
   void init() async {
@@ -99,12 +92,13 @@ class Roy4dApi {
   }
 
   List<ChannelModel> channels = [];
-  Future getChannels({bool resume = false}) async {
+  Future<List<ChannelModel>?> getChannels({bool resume = false}) async {
     if (resume == true && channels.isNotEmpty) {
-      return _channelStreamCtrl.sink.add(channels);
+      return channels;
     }
-    int offset = channels.length;
     int limit = 15;
+    int offset = channels.length;
+    if (offset % 15 > 0) return null;
     var url = Uri.https('roy4d.com', '/allgram/.bin/getChannels',
         {"path": "0", "range": "$offset,$limit"});
     dynamic response;
@@ -118,21 +112,23 @@ class Roy4dApi {
     } else {
       try {
         var res = channelModelFromJson(response.body);
-        channels.addAll(res);
-        _channelStreamCtrl.sink.add(res);
+        channels.insertAll(0, res);
+        return res;
       } on FormatException catch (e) {
         showSnack(e.message);
       }
     }
+    return null;
   }
 
   List<ChannelModel> groups = [];
-  Future getGroups({bool resume = false}) async {
-    if (resume == true && channels.isNotEmpty) {
-      return _groupStreamCtrl.sink.add(groups);
+  Future<List<ChannelModel>?> getGroups({bool resume = false}) async {
+    if (resume == true && groups.isNotEmpty) {
+      return groups;
     }
-    int offset = groups.length;
     int limit = 15;
+    int offset = groups.length;
+    if (offset % 15 > 0) return null;
     var url = Uri.https('roy4d.com', '/allgram/.bin/getChannels',
         {"path": "1", "range": "$offset,$limit"});
     dynamic response;
@@ -144,17 +140,17 @@ class Roy4dApi {
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');
     } else {
-      List<ChannelModel> res = [];
       try {
-        res = channelModelFromJson(response.body);
-        groups.addAll(res);
-        _groupStreamCtrl.sink.add(res);
+        var res = channelModelFromJson(response.body);
+        groups.insertAll(0, res);
+        return res;
       } on FormatException catch (e) {
         return showSnack(e.message);
       } on TypeError catch (e) {
         return showSnack(e.toString());
       }
     }
+    return null;
   }
 
   Future getBots() async {
@@ -167,7 +163,8 @@ class Roy4dApi {
     }
   }
 
-  showCountryBottomSheetSelector(TextEditingController dc) {
+  showCountryBottomSheetSelector(
+      TextEditingController dc, TextEditingController cc) {
     Map<String, CountryModel> countries = {};
     ValueNotifier<Map<String, CountryModel>> myCountries = ValueNotifier({});
     Map<String, Map<String, CountryModel>> filtrate = {};
@@ -229,7 +226,7 @@ class Roy4dApi {
                   alignment: Alignment.center,
                   child: TextFormField(
                     onChanged: (value) {
-                      searchCountryFromMaplist(value);
+                      searchCountryFromMaplist(value.trim());
                     },
                     textInputAction: TextInputAction.search,
                     textCapitalization: TextCapitalization.words,
@@ -258,7 +255,7 @@ class Roy4dApi {
                           if (country == null) return Container();
                           return ListTile(
                             onTap: () {
-                              Roy4dApi.selectedCountry = country.shortcode;
+                              cc.text = country.shortcode;
                               dc.text = "+${country.phonecode.toString()}";
                               Navigator.pop(context);
                             },

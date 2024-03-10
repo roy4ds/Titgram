@@ -3,6 +3,7 @@
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-feature android:name="android.hardware.telephony"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 
     <!-- Permissions options for the `contacts` group -->
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
