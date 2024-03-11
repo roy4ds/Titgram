@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:titgram/ads/admob/admanager.dart';
 import 'package:titgram/incs/api/roy4d_api.dart';
+import 'package:titgram/incs/tabs/channels_tab.dart';
 import 'package:titgram/models/channel_model.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -21,7 +22,6 @@ class GroupsTab extends StatefulWidget {
 
 class _GroupsTabState extends State<GroupsTab> {
   late AdManager adManager;
-  ValueNotifier<List<ChannelModel>?> groupMatch = ValueNotifier([]);
   ScrollController groupListScrollController = ScrollController();
   // streamgroups
   final StreamController<List<ChannelModel>> _groupStreamCtrl =
@@ -62,18 +62,18 @@ class _GroupsTabState extends State<GroupsTab> {
             child: CircularProgressIndicator(),
           );
         }
-        if (groupMatch.value == null) {
+        if (roy4dApi.groupMatch.value == null) {
           return const Center(
             child: Text("No chats found"),
           );
         }
         List<ChannelModel> superList = [
-          ...groupMatch.value!,
+          ...roy4dApi.groupMatch.value!,
           ...snapshot.data!
         ];
-        groupMatch.value = superList;
+        roy4dApi.groupMatch.value = superList;
         return ValueListenableBuilder(
-          valueListenable: groupMatch,
+          valueListenable: roy4dApi.groupMatch,
           builder: (context, value, child) {
             if (value == null || value.isEmpty) {
               return const Center(

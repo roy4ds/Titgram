@@ -72,8 +72,28 @@ class _HomePageState extends State<HomePage> {
       return;
     } else {
       for (ChannelModel channel in src) {
-        if (channel.title.toLowerCase().contains(text.toLowerCase())) {
+        if (channel.title.toLowerCase().contains(text.toLowerCase()) ||
+            channel.id.toString().compareTo(text) == 0) {
           matches.add(channel);
+        }
+      }
+      if (matches.isEmpty) {
+        switch (type) {
+          case 0:
+            roy4dApi.channelMatch.value = [];
+            break;
+          case 1:
+            roy4dApi.groupMatch.value = [];
+            break;
+        }
+      } else {
+        switch (type) {
+          case 0:
+            roy4dApi.channelMatch.value = matches;
+            break;
+          case 1:
+            roy4dApi.groupMatch.value = matches;
+            break;
         }
       }
     }
@@ -102,14 +122,15 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, value, child) {
                   if (value) {
                     return Container(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 8, 2),
+                      padding: const EdgeInsets.fromLTRB(12, 4, 4, 2),
                       decoration: BoxDecoration(
                         border: Border.all(),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(50),
                       ),
                       child: TextFormField(
                         decoration: const InputDecoration(
                           hintText: "Search...",
+                          border: InputBorder.none,
                           prefixIcon: Icon(Icons.search),
                         ),
                         onChanged: (value) {
@@ -128,11 +149,16 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               actions: [
-                IconButton(
-                  onPressed: () {
-                    isOnSearch.value = !isOnSearch.value;
+                ValueListenableBuilder(
+                  valueListenable: isOnSearch,
+                  builder: (context, value, child) {
+                    return IconButton(
+                      onPressed: () {
+                        isOnSearch.value = !value;
+                      },
+                      icon: Icon(value ? Icons.cancel_outlined : Icons.search),
+                    );
                   },
-                  icon: const Icon(Icons.search),
                 ),
               ],
               bottom: const TabBar(tabs: [

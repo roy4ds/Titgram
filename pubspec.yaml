@@ -17,6 +17,7 @@ dependencies:
   http: ^1.2.1
   package_info_plus: ^4.2.0
   permission_handler: ^11.3.0
+  share_plus: ^7.2.2
   transparent_image: ^2.0.1
   url_launcher: ^6.2.5
   url_strategy: ^0.2.0

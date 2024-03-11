@@ -10,6 +10,8 @@ import 'package:titgram/models/user_model.dart';
 
 class Roy4dApi {
   late BuildContext context;
+  ValueNotifier<List<ChannelModel>?> groupMatch = ValueNotifier([]);
+  ValueNotifier<List<ChannelModel>?> channelMatch = ValueNotifier([]);
 
   dynamic dataBox;
   Roy4dApi({BuildContext? ctxt}) {
@@ -154,7 +156,7 @@ class Roy4dApi {
   }
 
   Future getBots() async {
-    var url = Uri.https('roy4d.com', '/allgram/.bin/getBots', {'q': '{http}'});
+    var url = Uri.https('roy4d.com', '/allgram/.bin/getBots');
     var response = await http.post(url, headers: headers());
     if (response.statusCode != 200) {
       showSnack('Request failed with status: ${response.statusCode}.');

@@ -21,7 +21,6 @@ class ChannelsTab extends StatefulWidget {
 
 class _ChannelsTabState extends State<ChannelsTab> {
   late AdManager adManager;
-  ValueNotifier<List<ChannelModel>?> channelMatch = ValueNotifier([]);
   ScrollController channelListScrollController = ScrollController();
 
   // streamchannels
@@ -63,18 +62,18 @@ class _ChannelsTabState extends State<ChannelsTab> {
             child: CircularProgressIndicator(),
           );
         }
-        if (channelMatch.value == null) {
+        if (roy4dApi.channelMatch.value == null) {
           return const Center(
             child: Text("No chats found"),
           );
         }
         List<ChannelModel> superList = [
-          ...channelMatch.value!,
+          ...roy4dApi.channelMatch.value!,
           ...snapshot.data!
         ];
-        channelMatch.value = superList;
+        roy4dApi.channelMatch.value = superList;
         return ValueListenableBuilder(
-          valueListenable: channelMatch,
+          valueListenable: roy4dApi.channelMatch,
           builder: (context, value, child) {
             if (value == null || value.isEmpty) {
               return const Center(
